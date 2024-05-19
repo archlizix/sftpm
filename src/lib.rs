@@ -1,27 +1,24 @@
 use std::env;
 use std::error::Error;
 use std::fs;
+use clap::Parser;
 
+/// Simulate grep functionality
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
 pub struct Config {
     pub query: String,
     pub file_path: String,
+    #[arg(short, long, default_value_t = true)]
     pub ignore_case: bool,
 }
 
 impl Config {
-    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
-        args.next();
+    pub fn build() -> Result<Config, &'static str> {
+        let args = Config::parse();
 
-        let query = match args.next() {
-            Some(arg) => arg,
-            None => return Err("Didn't get a query string"),
-        };
-
-        let file_path = match args.next() {
-            Some(arg) => arg,
-            None => return Err("Didn't get a file path"),
-        };
-
+        let query = args.query;
+        let file_path = args.file_path;
         let ignore_case = env::var("IGNORE_CASE").is_ok();
 
         Ok(Config {
