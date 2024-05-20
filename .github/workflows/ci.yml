@@ -1,0 +1,38 @@
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+name: CI
+
+env:
+  RUSTFLAGS: -Dwarnings
+  RUST_BACKTRACE: 1
+
+jobs:
+  project-build:
+    name: Build and test project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        run: rustup update stable
+
+      - name: Build dependencies
+        run: cargo build
+
+      - name: Actually run the tests
+        run: cargo test --all
+
+  fmt-check:
+    name: Verify project code style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        run: rustup update stable
+
+      - name: Check formatting
+        run: cargo fmt --all
