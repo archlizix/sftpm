@@ -2,7 +2,7 @@ use std::process;
 
 use sftpm::Config;
 
-fn main(  )
+fn main( )
 {
     let config = Config::build().unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
