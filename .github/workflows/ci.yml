@@ -11,7 +11,7 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  project-build:
+  project-build_and_test:
     name: Build and test project
     runs-on: ubuntu-latest
     steps:

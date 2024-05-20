@@ -1,7 +1,7 @@
+use clap::Parser;
 use std::env;
 use std::error::Error;
 use std::fs;
-use clap::Parser;
 
 /// Simulate grep functionality
 #[derive(Parser, Debug)]
