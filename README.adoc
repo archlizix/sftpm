@@ -1,4 +1,5 @@
 = SFTPM
+[![CI](https://github.com/archlizix/sftpm/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/archlizix/sftpm/actions/workflows/ci.yml)
 == quick start
 PS> $Env:IGNORE_CASE=1; cargo run to poem.txt
 PS> Remove-Item Env:IGNORE_CASE
