@@ -1,16 +1,34 @@
-use std::process;
+use sftpm::{Cli, Commands};
+use clap::Parser;
 
-use sftpm::Config;
+fn main() {
+    let args = Cli::parse();
 
-fn main( )
-{
-    let config = Config::build().unwrap_or_else(|err| {
-        eprintln!("Problem parsing arguments: {err}");
-        process::exit(1);
-    });
-
-    if let Err(e) = sftpm::run(config) {
-        eprintln!("Application error: {e}");
-        process::exit(1);
+    match &args.command {
+        Some(Commands::Mount) => {
+            println!("input mount");
+        }
+        Some(Commands::Umount) => {
+            println!("input umount");
+        }
+        Some(Commands::MountAll) => {
+            println!("input mount-all");
+        }
+        Some(Commands::UmountAll) => {
+            println!("input umount-all");
+        }
+        Some(Commands::Ls) => {
+            println!("input ls");
+        }
+        Some(Commands::Rm) => {
+            println!("input rm");
+        }
+        Some(Commands::PreflightCheck) => {
+            println!("input preflight-check");
+        }
+        Some(Commands::Setup) => {
+            println!("input setup");
+        }
+        None => {}
     }
 }
