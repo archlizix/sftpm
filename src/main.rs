@@ -1,6 +1,7 @@
 use clap::Parser;
 mod model;
 mod model_sys;
+use exitcode;
 use model::EnvironmentModel;
 use model_sys::SystemModel;
 use sftpm::{Cli, Commands};
@@ -52,7 +53,7 @@ fn main() {
                 host: host.to_string(),
                 port: *port as u16,
                 user: user.to_string(),
-                mount_opts: vec!(mount_opt.to_string()),
+                mount_opts: vec![mount_opt.to_string()],
                 mount_point: mount_point.to_string(),
                 auth_method: auth_method.to_string(),
                 ssh_key: Some(ssh_key.to_string()),
@@ -67,6 +68,7 @@ fn main() {
                 for (field, error) in errors {
                     println!("{}: {}", field, error);
                 }
+                std::process::exit(exitcode::DATAERR);
             }
         }
         None => {}

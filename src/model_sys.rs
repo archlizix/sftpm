@@ -1,7 +1,8 @@
 use regex::Regex;
 use std::fs::File;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct SystemModel {
@@ -58,7 +59,6 @@ impl SystemModel {
         let id_regex = Regex::new(r"^[a-zA-Z0-9\.\-_@]+$").unwrap();
         let alphanumeric_regex = Regex::new(r"^[a-zA-Z0-9\.\-]+$").unwrap();
         let username_regex = Regex::new(r"^[a-zA-Z0-9\.\-_\@]+$").unwrap();
-        let path_regex = Regex::new(r"^/((([a-zA-Z0-9\.\-_]+)/?)*?)?$").unwrap();
 
         validate!(
             self.id,
@@ -70,7 +70,11 @@ impl SystemModel {
             alphanumeric_regex,
             "Hosts can only contain letters, digits, dot and dash.".to_string()
         );
-        validate!(self.mount_point, path_regex, "Invalid remote mount point.".to_string());
+        let path_buf = PathBuf::from_str(self.mount_point.as_str()).unwrap();
+        if !path_buf.exists() || !path_buf.is_dir() {
+            errors.push(("field", "Invalid remote mount point.".to_string()));
+        }
+
         if !Self::AUTH_METHODS.contains(&&*self.auth_method) {
             errors.push(("auth_method", "Unknown auth type.".to_string()));
         } else if self.auth_method == Self::AUTH_METHOD_PUBLIC_KEY
