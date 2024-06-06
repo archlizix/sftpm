@@ -1,7 +1,13 @@
-use sftpm::{Cli, Commands};
 use clap::Parser;
+mod model;
+use model::EnvironmentModel;
+use sftpm::{Cli, Commands};
 
 fn main() {
+    let env = EnvironmentModel::new();
+
+    println!("{:?}", env); // 打印EnvironmentModel实例以验证其创建
+
     let args = Cli::parse();
 
     match &args.command {
@@ -26,8 +32,9 @@ fn main() {
         Some(Commands::PreflightCheck) => {
             println!("input preflight-check");
         }
-        Some(Commands::Setup) => {
-            println!("input setup");
+        Some(Commands::Setup{id, host, port, user, mount_opt, mount_point, auth_method, ssh_key, cmd_before_mount}) => {
+            println!("input setup, id:{}, host:{}, port:{}, user:{}, mount_opt:{}, mount_point:{}, auth_method:{}, ssh_key:{}, cmd_before_mount:{}",
+                id, host, port, user, mount_opt, mount_point, auth_method, ssh_key, cmd_before_mount);
         }
         None => {}
     }
