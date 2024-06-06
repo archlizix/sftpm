@@ -23,11 +23,11 @@ pub enum Commands {
         mount_opt: String,
         #[arg(long)]
         mount_point: String,
-        #[arg(short, long, default_value = "publickey")]
+        #[arg(short, long, default_value = "password")]
         auth_method: String,
-        #[arg(short, long)]
+        #[arg(short, long, default_value = "")]
         ssh_key: String,
-        #[arg(short, long, default_value = "publickey")]
+        #[arg(short, long, default_value = "")]
         cmd_before_mount: String,
     },
     /// Removes a system by id

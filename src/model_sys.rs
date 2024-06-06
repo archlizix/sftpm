@@ -97,9 +97,6 @@ impl SystemModel {
                 ),
             ));
         }
-        if self.cmd_before_mount.is_empty() {
-            errors.push(("cmd_before_mount", "Invalid before mount command.".to_string()));
-        }
 
         (errors.is_empty(), errors)
     }
@@ -149,6 +146,6 @@ impl SystemModel {
     pub const AUTH_METHODS: &'static [&'static str] = &[
         Self::AUTH_METHOD_PUBLIC_KEY,
         Self::AUTH_METHOD_AUTHENTICATION_AGENT,
-        // ... other authentication methods ...
+        Self::AUTH_METHOD_PASSWORD,
     ];
 }
