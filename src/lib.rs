@@ -10,7 +10,26 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// Defines a new sftp file system configuration or edits an old one with the same id
-    Setup,
+    Setup {
+        #[arg(short, long)]
+        id: String,
+        #[arg(long)]
+        host: String,
+        #[arg(short, long, default_value_t = 22)]
+        port: i32,
+        #[arg(short, long)]
+        user: String,
+        #[arg(long, default_value = "")]
+        mount_opt: String,
+        #[arg(long)]
+        mount_point: String,
+        #[arg(short, long, default_value = "publickey")]
+        auth_method: String,
+        #[arg(short, long)]
+        ssh_key: String,
+        #[arg(short, long, default_value = "publickey")]
+        cmd_before_mount: String,
+    },
     /// Removes a system by id
     Rm,
     /// Detects whether we have everything needed to mount sshfs filesystems
