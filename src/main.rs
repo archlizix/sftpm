@@ -62,7 +62,7 @@ fn main() {
             let (is_valid, errors) = system_model.validate();
             if is_valid {
                 println!("SystemModel is valid.");
-                system_model.save("./config").unwrap();
+                system_model.save(env.get_system_config_path(id)).unwrap();
             } else {
                 println!("SystemModel is invalid:");
                 for (field, error) in errors {
