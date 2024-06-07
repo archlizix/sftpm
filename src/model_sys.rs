@@ -46,7 +46,7 @@ impl SystemModel {
     }
 
     pub fn validate(&self) -> (bool, Vec<(&'static str, String)>) {
-        let mut errors : Vec<(&'static str, String)> = Vec::new();
+        let mut errors: Vec<(&'static str, String)> = Vec::new();
 
         macro_rules! validate {
             ($field: expr, $regex: expr, $err_msg: expr) => {
