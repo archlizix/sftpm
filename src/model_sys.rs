@@ -71,7 +71,9 @@ impl SystemModel {
             "Hosts can only contain letters, digits, dot and dash.".to_string()
         );
         let path_buf = PathBuf::from_str(self.mount_point.as_str()).unwrap();
-        if !path_buf.exists() || !path_buf.is_dir() {
+        if !path_buf.is_dir() {
+            println!("path_buf:{:?}", path_buf);
+            println!("exists:{}, is_dir:{}", path_buf.exists(), path_buf.is_dir());
             errors.push(("field", "Invalid remote mount point.".to_string()));
         }
 
@@ -101,10 +103,16 @@ impl SystemModel {
         (errors.is_empty(), errors)
     }
 
-    pub fn save(&self, environment_path: &str) -> std::io::Result<()> {
-        let path = format!("{}/{}.conf", environment_path, self.id);
+    pub fn save(&self, environment_path: std::path::PathBuf) -> std::io::Result<()> {
+        let mut envir = environment_path.clone();
+
+        println!("{:?}", environment_path);
         std::fs::create_dir_all(environment_path)?;
-        let mut file = File::create(path)?;
+
+        envir.push(format!("{}.conf", self.id));
+
+        println!("{:?}", envir);
+        let mut file = File::create(envir)?;
         file.write_all(self.export().as_bytes())?;
         Ok(())
     }
