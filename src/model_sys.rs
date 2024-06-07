@@ -106,10 +106,8 @@ impl SystemModel {
     pub fn save(&self, environment_path: std::path::PathBuf) -> std::io::Result<()> {
         let mut envir = environment_path.clone();
 
-        println!("{:?}", environment_path);
-        std::fs::create_dir_all(environment_path)?;
-
-        envir.push(format!("{}.conf", self.id));
+        println!("{:?}", envir);
+        std::fs::create_dir_all(envir.parent().unwrap())?;
 
         println!("{:?}", envir);
         let mut file = File::create(envir)?;
