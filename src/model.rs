@@ -50,7 +50,7 @@ impl EnvironmentModel {
     }
 
     pub fn get_system_config_path(&self, system_id: &str) -> PathBuf {
-        self.config_path_mounts.join(format!("{}.json", system_id))
+        self.config_path_mounts.join(format!("{}.toml", system_id))
     }
 
     pub fn get_system_mount_dest(&self, system_id: &str) -> PathBuf {
