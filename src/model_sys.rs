@@ -1,8 +1,10 @@
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use toml;
 
 #[derive(Debug)]
 pub struct SystemModel {
@@ -16,6 +18,46 @@ pub struct SystemModel {
     pub(crate) ssh_key: Option<String>,
     pub(crate) cmd_before_mount: String,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+struct InstanceConfig {
+    id: String,
+    host: String,
+    port: u16,
+    user: String,
+    mount_opts: Vec<String>,
+    mount_point: String,
+    auth_method: String,
+    ssh_key: Option<String>,
+    cmd_before_mount: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Config {
+    instances: Vec<InstanceConfig>,
+}
+
+fn read_config(file_path: &str) -> Result<Config, String> {  
+
+    let mut file = File::open(file_path).map_err(|e| format!("{}", e))?;  
+
+    let mut contents = String::new();  
+
+    file.read_to_string(&contents).map_err(|e| format!("{}", e))?;  
+
+    toml::from_str(&contents).map_err(|e| format!("{}", e))  
+
+}  
+
+  
+
+fn write_config(config: &Config, file_path: &str) -> Result<(), String> {  
+
+    let toml_str = toml::to_string(config).map_err(|e| format!("{}", e))?;  
+
+    std::fs::write(file_path, toml_str.as_bytes()).map_err(|e| format!("{}", e))  
+
+}  
 
 impl SystemModel {
     fn new(
@@ -70,12 +112,6 @@ impl SystemModel {
             alphanumeric_regex,
             "Hosts can only contain letters, digits, dot and dash.".to_string()
         );
-        let path_buf = PathBuf::from_str(self.mount_point.as_str()).unwrap();
-        if !path_buf.is_dir() {
-            println!("path_buf:{:?}", path_buf);
-            println!("exists:{}, is_dir:{}", path_buf.exists(), path_buf.is_dir());
-            errors.push(("field", "Invalid remote mount point.".to_string()));
-        }
 
         if !Self::AUTH_METHODS.contains(&&*self.auth_method) {
             errors.push(("auth_method", "Unknown auth type.".to_string()));
@@ -103,42 +139,39 @@ impl SystemModel {
         (errors.is_empty(), errors)
     }
 
-    pub fn save(&self, environment_path: std::path::PathBuf) -> std::io::Result<()> {
-        let mut envir = environment_path.clone();
-
+    pub fn save(&self, envir: std::path::PathBuf) -> std::io::Result<()> {
         println!("{:?}", envir);
+
         std::fs::create_dir_all(envir.parent().unwrap())?;
-
-        println!("{:?}", envir);
         let mut file = File::create(envir)?;
         file.write_all(self.export().as_bytes())?;
         Ok(())
     }
 
     fn export(&self) -> String {
-        // This is a simple serialization example. In a real-world scenario, you might want to use a more robust format like JSON or TOML.
-        format!(
-            "id: {}\n\
-             host: {}\n\
-             port: {}\n\
-             user: {}\n\
-             mount_opts: {}\n\
-             mount_point: {}\n\
-             auth_method: {}\n\
-             ssh_key: {}\n\
-             cmd_before_mount: {}\n",
-            self.id,
-            self.host,
-            self.port,
-            self.user,
-            self.mount_opts.join(","),
-            self.mount_point,
-            self.auth_method,
-            self.ssh_key
-                .as_ref()
-                .map_or("None".to_string(), |k| k.clone()),
-            self.cmd_before_mount,
-        )
+        let config = Config {
+            instances: vec![
+                InstanceConfig {
+                    id: self.id.clone(),
+                    host: self.host.clone(),
+                    port: self.port,
+                    user: self.user.clone(),
+                    mount_opts: vec!["option1".to_string(), "option2".to_string()],
+                    mount_point: self.mount_point.clone(),
+                    auth_method:self.auth_method.clone(),
+                    ssh_key: Some("ssh-rsa AAAAB3N...".to_string()),
+                    cmd_before_mount: self.cmd_before_mount.clone(),
+                },
+                // 你可以继续添加更多的实例配置
+                // InstanceConfig { ... },
+            ],
+        };
+
+        let toml = toml::to_string(&config).unwrap();
+
+        println!("{}", toml);
+
+        toml
     }
 
     pub const PORT_RANGE_MIN: u16 = 0;
