@@ -57,7 +57,7 @@ fn main() {
                 mount_point: mount_point.to_string(),
                 auth_method: auth_method.to_string(),
                 ssh_key: Some(ssh_key.to_string()),
-                cmd_before_mount: cmd_before_mount.to_string(),
+                cmd_before_mount: Some(cmd_before_mount.to_string()),
             };
             let (is_valid, errors) = system_model.validate();
             if is_valid {

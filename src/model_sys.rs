@@ -2,62 +2,54 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
+use std::path::Path;
 use toml;
+use std::{fs, io::Result};
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Config {
+    pub instances: Vec<SystemModel>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SystemModel {
-    pub(crate) id: String,
-    pub(crate) host: String,
-    pub(crate) port: u16,
-    pub(crate) user: String,
-    pub(crate) mount_opts: Vec<String>,
-    pub(crate) mount_point: String,
-    pub(crate) auth_method: String,
-    pub(crate) ssh_key: Option<String>,
-    pub(crate) cmd_before_mount: String,
+    pub id: String,
+    pub host: String,
+    pub port: u16,
+    pub user: String,
+    pub mount_opts: Vec<String>,
+    pub mount_point: String,
+    pub auth_method: String,
+    pub ssh_key: Option<String>,
+    pub cmd_before_mount: Option<String>,
+}pub 
+
+fn write_config_to_file(path: &str, instance: &SystemModel) -> Result<()> {
+    let config = Config {
+        instances: vec![instance.clone()],
+    };
+    let toml_string = toml::to_string(&config).map_err(|err| {
+        std::io::Error::new(std::io::ErrorKind::Other, format!("序列化失败: {}", err))
+    })?;
+    fs::write(path, toml_string).map_err(|err| {
+        std::io::Error::new(std::io::ErrorKind::Other, format!("写入失败: {}", err))
+    })?;
+    println!("配置已写入到 '{}'", path);
+    Ok(())
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct InstanceConfig {
-    id: String,
-    host: String,
-    port: u16,
-    user: String,
-    mount_opts: Vec<String>,
-    mount_point: String,
-    auth_method: String,
-    ssh_key: Option<String>,
-    cmd_before_mount: String,
+fn read_config_from_file(path: &str) -> Result<Config> {
+    let contents = fs::read_to_string(path).map_err(|err| {
+        std::io::Error::new(std::io::ErrorKind::Other, format!("读取失败: {}", err))
+    })?;
+    let config: Config = toml::from_str(&contents).map_err(|err| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            format!("反序列化失败: {}", err),
+        )
+    })?;
+    Ok(config)
 }
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Config {
-    instances: Vec<InstanceConfig>,
-}
-
-fn read_config(file_path: &str) -> Result<Config, String> {  
-
-    let mut file = File::open(file_path).map_err(|e| format!("{}", e))?;  
-
-    let mut contents = String::new();  
-
-    file.read_to_string(&contents).map_err(|e| format!("{}", e))?;  
-
-    toml::from_str(&contents).map_err(|e| format!("{}", e))  
-
-}  
-
-  
-
-fn write_config(config: &Config, file_path: &str) -> Result<(), String> {  
-
-    let toml_str = toml::to_string(config).map_err(|e| format!("{}", e))?;  
-
-    std::fs::write(file_path, toml_str.as_bytes()).map_err(|e| format!("{}", e))  
-
-}  
 
 impl SystemModel {
     fn new(
@@ -69,21 +61,18 @@ impl SystemModel {
         mount_point: String,
         auth_method: String,
         ssh_key: Option<String>,
-        cmd_before_mount: String,
+        cmd_before_mount: Option<String>,
     ) -> Self {
-        SystemModel {
+        Self {
             id,
             host,
             port,
             user,
-            mount_opts: mount_opts
-                .into_iter()
-                .filter(|opt| !Self::UNSUPPORTED_MOUNT_OPTS.contains(&opt.as_str()))
-                .collect(),
+            mount_opts,
             mount_point,
             auth_method,
-            ssh_key,
-            cmd_before_mount,
+            ssh_key: ssh_key.or(Some(String::new())), // 处理 Option<String> 类型
+            cmd_before_mount: cmd_before_mount.or(Some(String::new())), // 处理 Option<String> 类型
         }
     }
 
@@ -144,34 +133,18 @@ impl SystemModel {
 
         std::fs::create_dir_all(envir.parent().unwrap())?;
         let mut file = File::create(envir)?;
-        file.write_all(self.export().as_bytes())?;
+        file.write_all(self.export().unwrap().as_bytes())?;
         Ok(())
     }
 
-    fn export(&self) -> String {
+    fn export(&self) -> Result<String> {
         let config = Config {
-            instances: vec![
-                InstanceConfig {
-                    id: self.id.clone(),
-                    host: self.host.clone(),
-                    port: self.port,
-                    user: self.user.clone(),
-                    mount_opts: vec!["option1".to_string(), "option2".to_string()],
-                    mount_point: self.mount_point.clone(),
-                    auth_method:self.auth_method.clone(),
-                    ssh_key: Some("ssh-rsa AAAAB3N...".to_string()),
-                    cmd_before_mount: self.cmd_before_mount.clone(),
-                },
-                // 你可以继续添加更多的实例配置
-                // InstanceConfig { ... },
-            ],
+            instances: vec![self.clone()],
         };
 
-        let toml = toml::to_string(&config).unwrap();
-
-        println!("{}", toml);
-
-        toml
+        toml::to_string(&config).map_err(|err| {
+            std::io::Error::new(std::io::ErrorKind::Other, format!("序列化失败: {}", err))
+        })
     }
 
     pub const PORT_RANGE_MIN: u16 = 0;
