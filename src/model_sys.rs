@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
-use toml;
 use std::{fs, io::Result};
+use toml;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
@@ -22,9 +22,8 @@ pub struct SystemModel {
     pub auth_method: String,
     pub ssh_key: Option<String>,
     pub cmd_before_mount: Option<String>,
-}pub 
-
-fn write_config_to_file(path: &str, instance: &SystemModel) -> Result<()> {
+}
+pub fn write_config_to_file(path: &str, instance: &SystemModel) -> Result<()> {
     let config = Config {
         instances: vec![instance.clone()],
     };
